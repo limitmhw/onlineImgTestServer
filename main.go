@@ -6,6 +6,7 @@ import (
 	//"os"
 	//"path"
 	"bufio"
+	"flag"
 	"io"
 	"math/rand"
 	"os"
@@ -107,7 +108,7 @@ func route(w http.ResponseWriter, r *http.Request) {
 	img, index := getRandomImg("1111", "2222", allData)
 	index = index
 	img = img
-	send := `{"img":"` + dataPath + img + `","index":"` + strconv.Itoa(index) + `"}`
+	send := `{"img":"` + (*dataPath) + img + `","index":"` + strconv.Itoa(index) + `"}`
 	fmt.Fprintln(w, send)
 }
 
@@ -150,10 +151,13 @@ func result(w http.ResponseWriter, r *http.Request) {
 }
 
 var allData Imgdata
-var dataPath = "http://10.231.56.131/bmp/"
+
+var dataPath *string = flag.String("dataPath", "http://10.231.56.131/bmp/", "dataPath")
+var imglist *string = flag.String("imglist", "imglist.txt", "imglist")
 
 func main() {
-	allData = readFile2DataSet("imglist.txt")
+	flag.Parse()
+	allData = readFile2DataSet((*imglist))
 	//
 	/*
 		for i := 0; i < 3000; i++ {
