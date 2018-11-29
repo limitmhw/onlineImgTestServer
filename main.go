@@ -54,6 +54,8 @@ func setResult(result string, index int, dd Imgdata) Imgdata {
 
 func writeFile(fileName string, content string) {
 	fileName = fileName + `.txt`
+	fileName = strings.Replace(fileName, `/`, `#`, -1)
+	fileName = strings.Replace(fileName, `\`, `#`, -1)
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	defer f.Close()
 	if err != nil {
@@ -131,17 +133,19 @@ func gethtml(w http.ResponseWriter, r *http.Request) {
 
 <body>
 <center>
+
+<div id="bb"  style="background-color:#ccc;width:100%;height:500px;"><img id="bbi"/></div>
 </br>
+<p id='imgname' ></p>
+<p id='imgresult' ></p>
 </br>
-<div id="bb"  style="background-color:#ccc;width:500px;height:500px;"></div>
-</br>
-<p id='imgname'></p>
-</br>
-<button id="geti">获取一张图片</button>
-<button class="p1" data-v="0">笑1</button>
-<button class="p1" data-v="1">笑2</button>
-<button class="p1" data-v="2">笑3</button>
-<button class="p1" data-v="3">笑4</button>
+<button id="geti" >获取一张图片</button>
+<button class="p1" data-v="0">自然微笑</button>
+<button class="p1" data-v="1">自然大笑</button>
+<button class="p1" data-v="2">不自然的微笑</button>
+<button class="p1" data-v="3">不自然的大笑</button>
+<button class="p1" data-v="4">不笑</button>
+
 </br></br>
 <a href="/result/" target="view_window">查看结果</a>
 </center>
@@ -163,8 +167,11 @@ $("#geti").on("click",function(){
 	    let data = JSON.parse(dd);//eval('"'+dd+'"');
 	    let url = data.img;
 		$(".p1").attr('data-i',data.index)
-	    $('#bb').css("background-image", 'url('+url+')');
+	   // $('#bb').css("background-image", 'url('+url+')');
+		$('#bbi').attr("src",url).css('height','100%');
 		$('#imgname').text(data.img)
+		$("#imgresult").text("");
+
    	}
    });
 
@@ -172,6 +179,7 @@ $("#geti").on("click",function(){
 
 $(".p1").on("click",function(){
 	$(this).attr('data-i')
+	let nnw=$(this).text();
 	$.ajax({
 	   	type: "POST", 
 	   	url: "/submit/",
@@ -180,7 +188,8 @@ $(".p1").on("click",function(){
 			"result":$(this).attr('data-v')
 	   	}, 
 	   	success: function (dd) {
- 			$("#geti").trigger("click");
+			$("#imgresult").text(nnw);
+ 			//$("#geti").trigger("click");
 	   	}
 	   });
 
