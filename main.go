@@ -52,6 +52,16 @@ func setResult(result string, index int, dd Imgdata) Imgdata {
 	return dd
 }
 
+func writeFile(fileName string, content string) {
+	fileName = fileName + `.txt`
+	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		_, _ = f.Write([]byte(content))
+	}
+}
 func readFile2DataSet(fileName string) Imgdata {
 	var ret Imgdata
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0666)
@@ -112,6 +122,77 @@ func route(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, send)
 }
 
+func gethtml(w http.ResponseWriter, r *http.Request) {
+	aa := `<html>
+
+<head>
+<title>我的第一个 HTML 页面</title>
+</head>
+
+<body>
+<center>
+</br>
+</br>
+<div id="bb"  style="background-color:#ccc;width:500px;height:500px;"></div>
+</br>
+<p id='imgname'></p>
+</br>
+<button id="geti">获取一张图片</button>
+<button class="p1" data-v="0">笑1</button>
+<button class="p1" data-v="1">笑2</button>
+<button class="p1" data-v="2">笑3</button>
+<button class="p1" data-v="3">笑4</button>
+</br></br>
+<a href="/result/" target="view_window">查看结果</a>
+</center>
+
+</body>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script>
+$(function(){
+$("#geti").on("click",function(){
+   $.ajax({
+   	type: "POST", 
+   	url: "/getImg/",
+   	data: {
+   		"dataset": "111",
+		"task":"555"
+   	}, 
+   	success: function (dd) {
+		console.log(dd);
+	    let data = JSON.parse(dd);//eval('"'+dd+'"');
+	    let url = data.img;
+		$(".p1").attr('data-i',data.index)
+	    $('#bb').css("background-image", 'url('+url+')');
+		$('#imgname').text(data.img)
+   	}
+   });
+
+})
+
+$(".p1").on("click",function(){
+	$(this).attr('data-i')
+	$.ajax({
+	   	type: "POST", 
+	   	url: "/submit/",
+	   	data: {
+	   		"index": $(this).attr('data-i'),
+			"result":$(this).attr('data-v')
+	   	}, 
+	   	success: function (dd) {
+ 			$("#geti").trigger("click");
+	   	}
+	   });
+
+})
+
+})
+
+</script>
+
+</html>`
+	fmt.Fprintln(w, aa)
+}
 func submit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	index := strings.Join(r.Form["index"], "")
@@ -123,6 +204,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	}
 	idx, _ := strconv.Atoi(index)
 	allData = setResult(result, idx, allData)
+	writeFile(allData.taskArray[idx], allData.resultArray[idx])
 
 	fmt.Fprintln(w, "submit_success")
 }
@@ -167,6 +249,7 @@ func main() {
 
 		}
 	*/
+	http.HandleFunc("/gethtml/", gethtml)
 	http.HandleFunc("/getImg/", route)
 	http.HandleFunc("/submit/", submit)
 	http.HandleFunc("/process/", process)
